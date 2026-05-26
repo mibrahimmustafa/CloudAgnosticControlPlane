@@ -1,13 +1,33 @@
 version: '3.8'
 
+networks:
+  cacp_network:
+    driver: bridge
+    name: cacp_internal_net
+
+volumes:
+  postgres_data:
+    driver: local
+    name: cacp_postgres_vol
+  redis_data:
+    driver: local
+    name: cacp_redis_vol
+  backend_logs:
+    driver: local
+    name: cacp_logs_vol
+
 services:
   db:
     image: postgres:15-alpine
     container_name: cacp_db
     restart: always
+    networks:
+      - cacp_network
+    ports:
+      - "8011:5432"
     environment:
       POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      POSTGRES_PASSWORD: ${DB_P…ord}
       POSTGRES_DB: ${DB_NAME:-cacp_db}
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -21,6 +41,12 @@ services:
     image: redis:alpine
     container_name: cacp_redis
     restart: always
+    networks:
+      - cacp_network
+    ports:
+      - "8012:6379"
+    volumes:
+      - redis_data:/data
 
   api:
     build: 
@@ -30,8 +56,10 @@ services:
     restart: always
     ports:
       - "8008:8000"
+    networks:
+      - cacp_network
     environment:
-      - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-password}@db:5432/${DB_NAME:-cacp_db}
+      - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-passw…_db}
       - REDIS_URL=redis://redis:6379/0
     depends_on:
       db:
@@ -40,6 +68,7 @@ services:
         condition: service_started
     volumes:
       - ./backend:/app
+      - backend_logs:/app/logs
 
   worker:
     build:
@@ -48,8 +77,10 @@ services:
     container_name: cacp_worker
     restart: always
     command: celery -A app.worker worker --loglevel=info
+    networks:
+      - cacp_network
     environment:
-      - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-password}@db:5432/${DB_NAME:-cacp_db}
+      - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-passw…_db}
       - REDIS_URL=redis://redis:6379/0
     depends_on:
       db:
@@ -58,6 +89,7 @@ services:
         condition: service_started
     volumes:
       - ./backend:/app
+      - backend_logs:/app/logs
 
   web:
     build:
@@ -67,12 +99,11 @@ services:
     restart: always
     ports:
       - "8010:3000"
+    networks:
+      - cacp_network
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:8008
     depends_on:
       - api
     volumes:
       - ./frontend:/app
-
-volumes:
-  postgres_data:
