@@ -29,7 +29,7 @@ services:
     container_name: cacp_api
     restart: always
     ports:
-      - "8000:8000"
+      - "8008:8000"
     environment:
       - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-password}@db:5432/${DB_NAME:-cacp_db}
       - REDIS_URL=redis://redis:6379/0
@@ -66,9 +66,9 @@ services:
     container_name: cacp_web
     restart: always
     ports:
-      - "3000:3000"
+      - "8010:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=http://api:8000
+      - NEXT_PUBLIC_API_URL=http://localhost:8008
     depends_on:
       - api
     volumes:
