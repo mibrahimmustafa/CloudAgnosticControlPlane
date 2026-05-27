@@ -1,8 +1,7 @@
-from sqlalchemy import create_all
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import os
-from .database import Base
+from ..models.database import Base
 
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:password@db:5432/cacp_db")
 
