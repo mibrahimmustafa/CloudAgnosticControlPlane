@@ -1,0 +1,45 @@
+# Environment variables
+# .env
+# .env.*
+# !.env.example
+
+# OS files
+.DS_Store
+Thumbs.db
+db.crypt
+
+# IDEs and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Databases / local data volumes
+postgres_data/
+redis_data/
+data/
+
+# Python cache / virtual envs
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+
+# Node dependencies and builds
+node_modules/
+.next/
+out/
+build/
+dist/
