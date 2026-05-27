@@ -55,7 +55,7 @@ services:
     container_name: cacp_api
     restart: always
     ports:
-      - "8008:8000"
+      - "8014:8000"
     networks:
       - cacp_network
     environment:
@@ -102,7 +102,7 @@ services:
     networks:
       - cacp_network
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8008
+      - NEXT_PUBLIC_API_URL=http://localhost:8014
     depends_on:
       - api
     volumes:

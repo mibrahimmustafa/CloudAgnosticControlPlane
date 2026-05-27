@@ -54,7 +54,7 @@ The system will provide a middleware API that connects to multiple external serv
 
 ### 4.3 Networking
 - **NFR5:** All internal communication must happen over a dedicated bridge network (`cacp_internal_net`).
-- **NFR6:** External access is restricted to specific ports: 8008 (API), 8010 (Web), 8011 (DB), 8012 (Redis).
+- **NFR6:** External access is restricted to specific ports: 8014 (API), 8010 (Web), 8011 (DB), 8012 (Redis).
 
 ---
 
