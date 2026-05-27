@@ -27,7 +27,7 @@ services:
       - "8011:5432"
     environment:
       POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_P…ord}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-securepassword123}
       POSTGRES_DB: ${DB_NAME:-cacp_db}
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -59,7 +59,7 @@ services:
     networks:
       - cacp_network
     environment:
-      - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-passw…_db}
+      - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-securepassword123}@db:5432/${DB_NAME:-cacp_db}
       - REDIS_URL=redis://redis:6379/0
     depends_on:
       db:
@@ -80,7 +80,7 @@ services:
     networks:
       - cacp_network
     environment:
-      - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-passw…_db}
+      - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-securepassword123}@db:5432/${DB_NAME:-cacp_db}
       - REDIS_URL=redis://redis:6379/0
     depends_on:
       db:
