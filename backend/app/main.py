@@ -9,6 +9,14 @@ from typing import List, Dict, Any
 app = FastAPI(title="CloudAgnosticControlPlane API")
 manager = ConnectorManager()
 
+class ConnectorUpdate(BaseModel):
+    user_id: int
+    connector_type: str
+    api_key: str
+    config_json: Dict[str, Any] = None
+    is_active: int = 1
+
+
 # Initialize DB on startup
 @app.on_event("startup")
 async def startup():
@@ -64,3 +72,58 @@ async def global_search(request: QueryRequest, db: Session = Depends(get_db)):
 async def check_connections():
     status = await manager.test_all_connections()
     return status
+
+@app.get("/connectors/{user_id}")
+def get_user_connectors(user_id: int, db: Session = Depends(get_db)):
+    connectors = db.query(UserConnector).filter(UserConnector.user_id == user_id).all()
+    return [{
+        "id": c.id,
+        "connector_type": c.connector_type,
+        "api_key": c.api_key,
+        "config_json": c.config_json,
+        "is_active": c.is_active,
+        "created_at": c.created_at.isoformat() if c.created_at else None
+    } for c in connectors]
+
+@app.post("/connectors")
+def update_user_connector(data: ConnectorUpdate, db: Session = Depends(get_db)):
+    # Ensure user exists
+    user = db.query(User).filter(User.id == data.user_id).first()
+    if not user:
+        user = User(id=data.user_id, email="demo@cacp.io", hashed_password="demo_hashed_password")
+        db.add(user)
+        db.commit()
+
+    conn = db.query(UserConnector).filter(
+        UserConnector.user_id == data.user_id,
+        UserConnector.connector_type == data.connector_type
+    ).first()
+    
+    if conn:
+        conn.api_key = data.api_key
+        if data.config_json is not None:
+            conn.config_json = data.config_json
+        conn.is_active = data.is_active
+    else:
+        conn = UserConnector(
+            user_id=data.user_id,
+            connector_type=data.connector_type,
+            api_key=data.api_key,
+            config_json=data.config_json,
+            is_active=data.is_active
+        )
+        db.add(conn)
+        
+    db.commit()
+    return {"status": "success", "connector_type": data.connector_type}
+
+@app.get("/logs/{user_id}")
+def get_search_logs(user_id: int, db: Session = Depends(get_db)):
+    logs = db.query(SearchLog).filter(SearchLog.user_id == user_id).order_by(SearchLog.timestamp.desc()).limit(50).all()
+    return [{
+        "id": l.id,
+        "query": l.query,
+        "results_count": l.results_count,
+        "timestamp": l.timestamp.isoformat() if l.timestamp else None
+    } for l in logs]
+
