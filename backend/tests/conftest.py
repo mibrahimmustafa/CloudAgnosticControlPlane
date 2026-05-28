@@ -64,7 +64,16 @@ def client(db_session):
 
 @pytest.fixture
 def mock_httpx_client():
+    from unittest.mock import AsyncMock
     with patch("httpx.AsyncClient") as mock_client_cls:
-        mock_client = MagicMock()
+        mock_client = AsyncMock()
         mock_client_cls.return_value.__aenter__.return_value = mock_client
+        
+        # mock_client.get should return a MagicMock with status_code 200 by default, 
+        # and .json() should return an empty list or expected format
+        response_mock = MagicMock()
+        response_mock.status_code = 200
+        response_mock.json.return_value = {"result": [{"message": {"text": "mock_result", "date": "2026-05-26"}}]}
+        mock_client.get.return_value = response_mock
+        
         yield mock_client
