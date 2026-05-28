@@ -69,8 +69,21 @@ async def global_search(request: QueryRequest, db: Session = Depends(get_db)):
     return {"query": request.query, "results": all_results, "count": len(all_results)}
 
 @app.get("/health/connections")
-async def check_connections():
-    status = await manager.test_all_connections()
+async def check_connections(user_id: int = 1, db: Session = Depends(get_db)):
+    connectors = db.query(UserConnector).filter(
+        UserConnector.user_id == user_id, 
+        UserConnector.is_active == 1
+    ).all()
+    
+    status = {}
+    from .connectors.telegram import TelegramConnector
+    mapping = {"telegram": TelegramConnector}
+    
+    for conn in connectors:
+        if conn.connector_type in mapping:
+            connector_instance = mapping[conn.connector_type](conn.api_key)
+            status[conn.connector_type] = await connector_instance.test_connection()
+            
     return status
 
 @app.get("/connectors/{user_id}")
